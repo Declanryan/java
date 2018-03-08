@@ -1,0 +1,561 @@
+package assignment2;
+/**
+@author Declan Ryan
+*/
+public class Main {
+// Initialize the application
+	public static void main(String[] args) {
+		Gui currencyApp = new Gui();// creates the gui object
+
+	}
+
+}
+package assignment2;
+
+// import library's for use
+import javax.swing.*;
+import java.awt.*;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+
+public class Gui {
+	// declare class fields
+	private JLabel amountlabel;
+	private JLabel commisionLabel;
+	static JTextField amountField;
+	static JComboBox<String> commissionField;
+	private JLabel totalCommission;
+	static JFormattedTextField totalCommissionField;
+	private JLabel totalCostLabel;
+	static JFormattedTextField totalCostField;
+	private JLabel totalLabel;
+	static JFormattedTextField totalField;
+	static NumberFormat totalFormat;
+	private NumberFormat commissionFormat;
+	static ArrayList<Double> rates = new ArrayList<Double>();
+	static ArrayList<Double> comissions = new ArrayList<Double>();
+	static String[] banks = { "boi", "ebs", "aib" };
+
+	// Use constructor to create the gui object
+	public Gui() {
+		// Gets the currency and commission rates for use
+		CurrencyRates.getCurrencyRates();
+		ComissionRates.getComissionRates();
+
+		// Create the starting frame to contain the gui widgets
+		// and sets the layout type
+		JFrame.setDefaultLookAndFeelDecorated(true);
+		JFrame frame = new JFrame("Currency Converter");
+		frame.setLayout(new GridLayout(7, 1));
+
+		// Creates the buttons for use in the main interface
+		JButton first = new JButton("Dollars");
+		JButton second = new JButton("Sterling");
+		JButton third = new JButton("Yuan");
+		JButton fourth = new JButton("Set Currency Rates");
+		JButton fifth = new JButton("Set Commission Rates");
+
+		// Creates the number formats for the output boxes
+		totalFormat = NumberFormat.getCurrencyInstance();
+		totalFormat.setMinimumFractionDigits(2);
+		totalFormat.setMaximumFractionDigits(2);
+		commissionFormat = NumberFormat.getCurrencyInstance();
+		commissionFormat.setMinimumFractionDigits(2);
+		commissionFormat.setMaximumFractionDigits(2);
+
+		// Creates the amount label and box for the user to enter the amount to
+		// change
+		amountlabel = new JLabel("Amount");
+		amountField = new JTextField();
+		amountField.setText("0");
+		amountField.setColumns(10);
+
+		// Creates the commission label and box for the user to pick a
+		// commission
+		// or chose one from a list
+		commisionLabel = new JLabel("Commision rate (%):");
+		commissionField = new JComboBox<String>(banks);
+		commissionField.setEditable(true);
+		commissionField.setForeground(Color.BLUE);
+		commissionField.setFont(new Font("Arial", Font.BOLD, 14));
+
+		// Create the total commission label and a formatted text field for
+		// Outputting the total commission
+		totalCommission = new JLabel("Total commision");
+		totalCommissionField = new JFormattedTextField(commissionFormat);
+		totalCommissionField.setValue(0);
+		totalCommissionField.setColumns(10);
+		totalCommissionField.setEditable(false);
+
+		// Create the total cost label and a formatted text field for
+		// Outputting the total cost of the transaction
+		totalCostLabel = new JLabel("Total Cost");
+		totalCostField = new JFormattedTextField(commissionFormat);
+		totalCostField.setValue(0);
+		totalCostField.setColumns(10);
+		totalCostField.setEditable(false);
+
+		// Create the total label and a formatted text field for
+		// Outputting the total converted currency
+		totalField = new JFormattedTextField(totalFormat);
+		totalField.setValue(0);
+		totalField.setColumns(10);
+		totalField.setEditable(false);
+		totalField.setForeground(Color.red);
+		totalLabel = new JLabel("Total");
+
+		// adds the action listeners for the buttons and calls the relevant
+		// function for each button
+		first.addActionListener(new CalculateCurrency());
+		second.addActionListener(new CalculateCurrency());
+		third.addActionListener(new CalculateCurrency());
+		fourth.addActionListener(new GetValues());
+		fifth.addActionListener(new GetValues());
+
+		// adds the predefined banks and commission rates to the jcombobox
+		updateBank();
+
+		// creates the panels for the widgets
+		JPanel panel_1 = new JPanel();
+		JPanel panel_2 = new JPanel();
+		JPanel panel_3 = new JPanel();
+		JPanel panel_4 = new JPanel();
+		JPanel panel_5 = new JPanel();
+		JPanel panel_6 = new JPanel();
+		JPanel panel_7 = new JPanel();
+
+		// Adds the specific widgets to there panel
+		panel_1.add(amountlabel);
+		panel_1.add(amountField);
+		panel_2.add(fourth);
+		panel_2.add(fifth);
+		panel_3.add(commisionLabel);
+		panel_3.add(commissionField);
+		panel_4.add(totalCommission);
+		panel_4.add(totalCommissionField);
+		panel_5.add(totalCostLabel);
+		panel_5.add(totalCostField);
+		panel_6.add(first);
+		panel_6.add(second);
+		panel_6.add(third);
+		panel_7.add(totalLabel);
+		panel_7.add(totalField);
+
+		// Adds the panels to the holding frame
+		frame.add(panel_1);
+		frame.add(panel_2);
+		frame.add(panel_3);
+		frame.add(panel_4);
+		frame.add(panel_5);
+		frame.add(panel_6);
+		frame.add(panel_7);
+
+		// Sets the size, position, visibility and default exit operation
+		frame.setSize(500, 450);
+		frame.setLocationRelativeTo(null);
+		frame.setVisible(true);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	}
+
+	// function to update the jcombobox
+	public static void updateBank() {
+		commissionField.removeAllItems();
+		banks[0] = "BOI: " + comissions.get(0);
+		commissionField.addItem(banks[0]);
+		banks[1] = "AIB: " + comissions.get(1);
+		commissionField.addItem(banks[1]);
+		banks[2] = "EBS: " + comissions.get(2);
+		commissionField.addItem(banks[2]);
+
+	}
+
+}
+package assignment2;
+
+// import libraries for use 
+import java.io.*;
+import javax.swing.JOptionPane;
+
+public class ComissionRates {
+
+	// function to read in the commission rates
+	public static void getComissionRates() {
+		File comissionRates = new File("C:/Users/dryan/workspace/assignment2/src/assignment2/comission rates.txt");
+
+		try {// try catch block to catch exceptions
+
+			// FileReader reads character files
+			// BufferedReader reads as many characters as possible
+			BufferedReader getInfo = new BufferedReader(new FileReader(comissionRates));
+
+			// Reads a whole line from the file and saves it in a String
+			String info = getInfo.readLine();
+
+			// check that info is not equal to nothing
+			while (info != null) {
+
+				// Break lines into pieces using " " as a separator
+				String[] ratesArray = info.split(" ");
+
+				// Convert the String into an integer with parseInt
+				double custAge = Double.parseDouble(ratesArray[1]);
+
+				// Add the integer to the comissions array
+				Gui.comissions.add(custAge);
+
+				// Read in another line
+				info = getInfo.readLine();
+
+			}
+			// close the file
+			getInfo.close();
+		}
+
+		// exception that Can be thrown by FileReader
+
+		catch (FileNotFoundException e) {
+			JOptionPane.showMessageDialog(null, "Couldn't Find the File");
+			System.exit(0);
+
+		}
+		// exception that Can be thrown with i/o
+		catch (IOException e) {
+			JOptionPane.showMessageDialog(null, "An I/O Error Occurred");
+			System.exit(0);
+
+		}
+
+	}
+}
+package assignment2;
+
+//import libraries for use 
+import java.io.BufferedReader;
+import java.io.*;
+import javax.swing.JOptionPane;
+
+public class CurrencyRates {
+
+	// function to read in the commission rates
+	public static void getCurrencyRates() {
+
+		File currencyRates = new File("C:/Users/dryan/workspace/assignment2/src/assignment2/currency rates.txt");
+
+		try {// try catch block to catch exceptions
+
+			// FileReader reads character files
+			// BufferedReader reads as many characters as possible
+			BufferedReader getInfo = new BufferedReader(new FileReader(currencyRates));
+
+			// Reads a whole line from the file and saves it in a String
+
+			String custInfo = getInfo.readLine();
+
+			// check that info is not equal to nothing
+			while (custInfo != null) {
+
+				// Break lines into pieces
+				String[] ratesArray = custInfo.split(" ");
+
+				// Convert the String into an integer with parseInt
+				double custAge = Double.parseDouble(ratesArray[1]);
+
+				// Add the integer to the rates array
+				Gui.rates.add(custAge);
+
+				// Read in another line
+				custInfo = getInfo.readLine();
+
+			} // close the file
+			getInfo.close();
+		}
+
+		// Can be thrown by FileReader
+		catch (FileNotFoundException e) {
+			JOptionPane.showMessageDialog(null, "Couldn't Find the File");
+			System.exit(0);
+
+		}
+		// exception that Can be thrown with i/o
+		catch (IOException e) {
+			JOptionPane.showMessageDialog(null, "An I/O Error Occurred");
+			System.exit(0);
+
+		}
+
+	}
+
+}
+package assignment2;
+
+//import library's for use
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Currency;
+import java.util.Locale;
+import javax.swing.JOptionPane;
+
+// class to calculate the chosen currency
+public class CalculateCurrency implements ActionListener {
+
+	public void actionPerformed(ActionEvent e) {
+		double rate;
+		// Listens for the action being performed i.e. button press
+		// then sets the locale for the currency and the rate
+		if (e.getActionCommand() == "Dollars") {
+			Gui.totalFormat.setCurrency(Currency.getInstance(Locale.US));
+			rate = Gui.rates.get(0);
+		} else if (e.getActionCommand() == "Sterling") {
+			Gui.totalFormat.setCurrency(Currency.getInstance(Locale.UK));
+			rate = Gui.rates.get(1);
+		} else {
+			Gui.totalFormat.setCurrency(Currency.getInstance(Locale.PRC));
+			rate = Gui.rates.get(2);
+		}
+
+		try {// try catch block to catch exceptions
+
+			// takes the fields string and turns it into a double
+			double amount = (Double.parseDouble(Gui.amountField.getText()));
+
+			// takes the fields string and turns it into a double and multiplys
+			// it by the rate
+			double convertedCurrency = (Double.parseDouble(Gui.amountField.getText()) * rate);
+
+			// Takes the string from the combobox and splits it
+			String info = (String) Gui.commissionField.getSelectedItem();
+			String[] infoArray = info.split(" ");
+
+			// Convert the String into an integer with parseInt
+			double commissionRate = Double.parseDouble(infoArray[1]);
+
+			// issue a warning for negative amounts
+			if (convertedCurrency <= 0) {
+				JOptionPane.showMessageDialog(null, "Amount must be greater than zero");
+				// issue a warning for negative commissions
+			} else if (commissionRate < 0) {
+				JOptionPane.showMessageDialog(null, "commission cannot be less than zero");
+
+			} else {
+				// calculate the commission
+				double commission = ((amount / 100) * commissionRate);
+
+				// assigns the results to there output fields
+				Gui.totalCommissionField.setValue(commission);
+				Gui.totalCostField.setValue(amount + commission);
+				Gui.totalField.setValue(convertedCurrency);
+
+			}
+		} catch (NumberFormatException num) {
+			// issue a warning if a number is not entered
+			JOptionPane.showMessageDialog(null, "Error, not a number. Please try again.");
+		}
+	}
+}
+package assignment2;
+
+// import library's for use
+import java.awt.Frame;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import javax.swing.*;
+
+// Class to create another frame for setting commission rates and exchange rates
+public class GetValues implements ActionListener {
+	// Sets class fields
+	private String name;
+	private JLabel labelA;
+	private JLabel labelB;
+	private JLabel labelC;
+	private JTextField fieldA;
+	private JTextField fieldB;
+	private JTextField fieldC;
+
+	// action to be performed on button press
+	public void actionPerformed(ActionEvent e) {
+
+		// creates a set button
+		String buttonName = "set";
+		JButton set = new JButton(buttonName);
+
+		// Sets the variables for the frame depending on which
+		// button was pressed and adds an action listener
+		if (e.getActionCommand() == "Set Commission Rates") {
+
+			name = "Set Comission Rates";
+			labelA = new JLabel("BOI: ");
+			fieldA = new JTextField();
+			fieldA.setColumns(10);
+			fieldA.setText("1");
+			labelB = new JLabel("AIB: ");
+			fieldB = new JTextField();
+			fieldB.setColumns(10);
+			fieldB.setText("2");
+			labelC = new JLabel("EBS: ");
+			fieldC = new JTextField();
+			fieldC.setColumns(10);
+			fieldC.setText("3");
+			set.addActionListener(new SetComissionRates());
+
+		} else {
+			name = "Set Currency Rates";
+			labelA = new JLabel("DOLLARS");
+			fieldA = new JTextField();
+			fieldA.setColumns(10);
+			fieldA.setText("1.16487");
+			labelB = new JLabel("STERLING");
+			fieldB = new JTextField();
+			fieldB.setColumns(10);
+			fieldB.setText("0.884310");
+			labelC = new JLabel("YUAN");
+			fieldC = new JTextField();
+			fieldC.setColumns(10);
+			fieldC.setText("7.68");
+			set.addActionListener(new SetCurrencyRates());
+
+		}
+
+		// creates a new frame with a default look and a grid layout
+		JFrame frame2 = new JFrame(name);
+		JFrame.setDefaultLookAndFeelDecorated(true);
+		frame2.setLayout(new GridLayout(4, 1));
+
+		// Creates the panels
+		JPanel panel_a = new JPanel();
+		JPanel panel_b = new JPanel();
+		JPanel panel_c = new JPanel();
+		JPanel panel_d = new JPanel();
+
+		// adds content to the panels
+		panel_a.add(labelA);
+		panel_a.add(fieldA);
+		panel_b.add(labelB);
+		panel_b.add(fieldB);
+		panel_c.add(labelC);
+		panel_c.add(fieldC);
+		panel_d.add(set);
+
+		// adds the panels to the frame
+		frame2.add(panel_a);
+		frame2.add(panel_b);
+		frame2.add(panel_c);
+		frame2.add(panel_d);
+
+		// sets the size, position, visibility and default close operation of
+		// the frame
+		frame2.setSize(350, 300);
+		frame2.setLocationRelativeTo(null);
+		frame2.setVisible(true);
+		frame2.setDefaultCloseOperation(frame2.DISPOSE_ON_CLOSE);
+
+	}
+
+	// Class to set currency rates
+	public class SetCurrencyRates implements ActionListener {
+
+		public void actionPerformed(ActionEvent e) {
+
+			// creates the text to be written to the file
+			String line1 = ("Dollars " + fieldA.getText() + "\n");
+			String line2 = ("Sterling " + fieldB.getText() + "\n");
+			String line3 = ("Rupee " + fieldC.getText());
+
+			try {
+				// checks that the amounts entered are numbers
+				double amount1 = (Double.parseDouble(fieldA.getText()));
+				double amount2 = (Double.parseDouble(fieldB.getText()));
+				double amount3 = (Double.parseDouble(fieldC.getText()));
+
+				// file to be used
+				File currencyRates = new File(
+						"C:/Users/dryan/workspace/assignment2/src/assignment2/currency rates.txt");
+
+				// opens the file to be written, then writes line1,line2 and
+				// line3
+				// then clears the buffer and closes the file
+				FileWriter fileWriter = new FileWriter(currencyRates);
+				fileWriter.write(line1);
+				fileWriter.write(line2);
+				fileWriter.write(line3);
+				fileWriter.flush();
+				fileWriter.close();
+
+				// gets the frames that are open
+				Frame[] f = JFrame.getFrames();
+				// adds the information to the rates array
+				CurrencyRates.getCurrencyRates();
+				// display message that rates have been set
+				JOptionPane.showMessageDialog(null, "Rates set");
+				// close the frame
+				f[1].dispose();
+
+			} catch (IOException b) {
+				// show message for i/o error and exit
+				JOptionPane.showMessageDialog(null, "An I/O Error Occurred");
+				System.exit(0);
+			} catch (NumberFormatException num) {
+				// show message for wrong input
+				JOptionPane.showMessageDialog(null, "Error, not a number. Please try again.");
+
+			}
+		}
+	}
+
+	// class to set commission rates
+	public class SetComissionRates implements ActionListener {
+
+		public void actionPerformed(ActionEvent e) {
+
+			// creates the text to be written to the file
+			String line1 = ("BOI " + fieldA.getText() + "\n");
+			String line2 = ("AIB " + fieldB.getText() + "\n");
+			String line3 = ("EBS " + fieldC.getText());
+
+			try {
+				// checks that the amounts entered are numbers
+				double amount1 = (Double.parseDouble(fieldA.getText()));
+				double amount2 = (Double.parseDouble(fieldB.getText()));
+				double amount3 = (Double.parseDouble(fieldC.getText()));
+
+				// file to be used
+				File currencyRates = new File(
+						"C:/Users/dryan/workspace/assignment2/src/assignment2/comission rates.txt");
+
+				// opens the file to be written, then writes line1,line2 and
+				// line3
+				// then clears the buffer and closes the file
+				FileWriter fileWriter = new FileWriter(currencyRates);
+				fileWriter.write(line1);
+				fileWriter.write(line2);
+				fileWriter.write(line3);
+				fileWriter.flush();
+				fileWriter.close();
+
+				// gets the frames that are open
+				Frame[] f = JFrame.getFrames();
+				// adds the information to the commissions array
+				ComissionRates.getComissionRates();
+				// updates the jcombobox in the main frame
+				Gui.updateBank();
+				// display message that commissions have been set
+				JOptionPane.showMessageDialog(null, "Comissions set");
+				// close the frame
+				f[1].dispose();
+
+			} catch (IOException b) {
+				// show message for i/o error and exit
+				JOptionPane.showMessageDialog(null, "An I/O Error Occurred");
+				System.exit(0);
+			} catch (NumberFormatException num) {
+				// show message for wrong input
+				JOptionPane.showMessageDialog(null, "Error, not a number. Please try again.");
+
+			}
+		}
+	}
+
+}
