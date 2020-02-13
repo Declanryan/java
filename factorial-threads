@@ -1,0 +1,77 @@
+package factorial;
+// This program accepts arguments of type int. It will iterate over 
+// the args creating a thread and calculating the factorial for each
+// thread.
+// @author Declan Ryan(d16124512)
+public class Main {
+
+	public static void main(String[] args) {
+		System .out.println("you have passed "+ args.length +" arguments to the program");
+		for(int i=0;i<args.length;i++){// prints out the arguments
+			System.out.print(args[i]+", ");
+		}
+		System.out.println("");
+		System.out.println("");
+		Data data = new Data();// create arraylist called data for holding factorial results
+		for(int i=0;i<args.length;i++){// loop through arguments creating thread for each and
+			Thread thread = new Thread(new Joiner(args [i], data));// calculating factorials
+			System.out.println("Starting thread " + i +" in main");
+			thread.start();
+			try{
+				thread.join(); //NB :Main pauses here until thread (i.e run) finishes
+				} catch (InterruptedException e) {}
+			System.out.println("The result of thread "+i+" is "+data.get(i)+"." );//display result of each thread
+			System.out.println("Ending thread " + i +" in main." );
+			System.out.println("");
+		}
+		System.out.println("End of main");
+		System.out.println("");
+		System.out.println("The results of the factorials are "+data.getData());// display total results 
+		
+
+	}
+}
+
+package factorial;
+// thread class that calculates the factorial
+public class Joiner extends Thread{
+	private int args;
+	private Data data;
+	
+	public Joiner(String args, Data data) {
+		this.args= Integer.parseInt(args);// convert string to int
+		this.data = data;
+	}
+	public void run() {
+		data.setData(is_factorial(args));// thread run method
+		}
+	
+	public int is_factorial(int number){
+		int fact = 1; 
+		for(int i=0;i<number;i++){
+		      fact+=fact*i;  
+		}
+		return fact;
+	}
+}
+
+package factorial;
+// class to create the array that will hold the results of the factorials
+import java.util.ArrayList;
+
+public class Data {
+	private ArrayList<Integer> data = new ArrayList<Integer>();
+	
+	public ArrayList<Integer> getData() {
+		return this.data;// gets the data for the array
+	}
+	
+	public Integer get(int i) {
+		return this.data.get(i);// gets a specific result by index
+	}
+	
+	public void setData(int i) {
+		this.data.add(i);// used to store a result in the array
+	}
+
+}
